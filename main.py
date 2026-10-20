@@ -19,45 +19,59 @@ def cityStationfinder(stationName: str) -> str:
     return f"{latitude},{longitude}"
 
 
+HEADERS = {"User-Agent": "RE-Tracker/1.0 (Student Project)"}
+PLAN_URL = "https://api.transitous.org/api/v1/plan"
 
-AachenCoords = cityStationfinder("Aachen HBF")
-DortmundCoords = cityStationfinder("Dortmund HBF")
+CORRIDORS = [
+    {
+        "line": "RE1",
+        "from_name": "Aachen Hbf",
+        "to_name": "Hamm (Westf) Hbf",
+        "from_coords": "50.7678,6.0914",
+        "to_coords": "51.6784,7.8077",
+    },
+    {
+        "line": "RE4",
+        "from_name": "Aachen Hbf",
+        "to_name": "Dortmund Hbf",
+        "from_coords": "50.7678,6.0914",
+        "to_coords": "51.5177,7.4588",
+    },
+]
 
-url2 = "https://api.transitous.org/api/v1/plan"
+for corridor in CORRIDORS:
+    target_line = corridor["line"]
 
-plan = requests.get(url2, params={"fromPlace":AachenCoords, "toPlace":DortmundCoords}, headers={"User-Agent":"RE-1-Delay-Tracker"})
-routeData = plan.json()
+    response = requests.get(
+        PLAN_URL,
+        params={
+            "fromPlace": corridor["from_coords"],
+            "toPlace": corridor["to_coords"],
+        },
+        headers=HEADERS,
+    )
+    data = response.json()
 
+    for journey in data.get("itineraries", []):
 
-itineraries = routeData.get("itineraries", [])
-
-print(f"Found {len(itineraries)} different routes")
-
-for i, journey in enumerate(itineraries):
-
-    print(f"=== Option{i+1} ===== Transfers: {journey.get("transfers")} ===")
-
-    for leg in journey.get("legs", []):
-        mode = leg.get("mode")
-
-        if mode == "WALK":
+        if journey.get("transfers", 0) > 0:
             continue
 
-        trainName =leg.get("displayName")
-        origin = leg.get("from").get("name")
-        destination = leg.get("to").get("name")
+        for leg in journey.get("legs", []):
+            if leg.get("mode") != "REGIONAL_RAIL":
+                continue
 
-        schedDep = leg.get("scheduledStartTime")
-        actDep = leg.get("startTime")
 
-        timeSched = datetime.fromisoformat(schedDep.replace("Z", "+00:00"))
-        timeActual = datetime.fromisoformat(actDep.replace("Z", "+00:00"))
+            name = leg.get("displayName") or leg.get("routeShortName", "")
 
-        timeDiff = int((timeActual-timeSched).total_seconds() / 60)
+            # Filter: Check if this specific leg matches the target line (e.g., starts with "RE1" or "RE4")
+            if not name.startswith(target_line):
+                continue
 
-        timeDelay = f"+{timeDiff} minutes late" if timeDiff > 0 else "On time"
-
-        print(f"TrainName: {trainName}: {origin} -> {destination}")
-        print(f" Departs {actDep}, {timeDelay}")
-
-    print("-" * 40)
+            # Leg matches your target line -> process/save to database
+            trip_id = leg.get("tripId")
+            print(f"Captured {target_line}: ({leg.get("from")["name"]} -> {leg.get("to")['name']})")
+            stops = leg.get("intermediateStops", [])
+            for stop in stops:
+                print(stop["name"], end= " -> ")
+            print(leg.get("to")["name"])
