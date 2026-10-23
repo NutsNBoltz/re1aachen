@@ -16,16 +16,20 @@ import logging
 import sqlite3
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Iterator, Optional
 
 import requests
 
 PLAN_URL = "https://api.transitous.org/api/v1/plan"
+TRIP_URL = "https://api.transitous.org/api/v1/trip"
 HEADERS = {"User-Agent": "RE-Tracker/1.0 (Student Project)"}
 DB_PATH = "re_tracker.db"
 REQUEST_TIMEOUT = 20          # seconds
 DELAYED_THRESHOLD_MIN = 3     # >= this many minutes late counts as DELAYED
+ACTIVE_GRACE_MIN = 20         # keep refreshing a trip this long after its (actual) final arrival
+START_HORIZON_MIN = 15        # start refreshing a trip this long before it departs
+REFRESH_PAUSE_S = 0.3         # politeness delay between /trip requests
 
 log = logging.getLogger("re_tracker")
 
@@ -304,6 +308,84 @@ def store_leg(conn: sqlite3.Connection, line: str, leg: dict[str, Any]) -> None:
         conn.executemany(UPSERT_STOP, stops)
 
 
+# --------------------------------------------------------------------------
+# Live refresh of trips already in the database
+# --------------------------------------------------------------------------
+ACTIVE_TRIPS_SQL = """
+SELECT t.trip_id, t.line
+FROM trips t
+WHERE t.cancelled = 0
+  AND t.scheduled_start <= :horizon
+  AND (
+        SELECT MAX(COALESCE(s.actual_arrival, s.actual_departure,
+                            s.scheduled_arrival, s.scheduled_departure))
+        FROM stop_events s
+        WHERE s.trip_id = t.trip_id AND s.status != 'CANCELLED'
+      ) >= :cutoff
+"""
+
+
+def active_trips(conn: sqlite3.Connection) -> list[tuple[str, str]]:
+    """Trips that have started (or are about to) and haven't finished yet."""
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    params = {
+        "horizon": (now + timedelta(minutes=START_HORIZON_MIN)).isoformat(),
+        "cutoff": (now - timedelta(minutes=ACTIVE_GRACE_MIN)).isoformat(),
+    }
+    return [(r[0], r[1]) for r in conn.execute(ACTIVE_TRIPS_SQL, params)]
+
+
+def fetch_trip(session: requests.Session, trip_id: str) -> Optional[dict[str, Any]]:
+    resp = session.get(TRIP_URL, params={"tripId": trip_id},
+                       headers=HEADERS, timeout=REQUEST_TIMEOUT)
+    if resp.status_code == 404:      # purged / unknown to the server
+        return None
+    resp.raise_for_status()
+    return resp.json()
+
+
+def pick_trip_leg(data: dict[str, Any], trip_id: str) -> Optional[dict[str, Any]]:
+    legs = [l for l in data.get("legs", []) if l.get("mode") == "REGIONAL_RAIL"]
+    exact = [l for l in legs if l.get("tripId") == trip_id]
+    chosen = exact or legs[:1]
+    return chosen[0] if chosen else None
+
+
+def refresh_active_trips(conn: sqlite3.Connection, session: requests.Session) -> int:
+    """Re-query every unfinished trip so rows keep receiving live delays
+    after the train has left the origin of our /plan queries."""
+    refreshed = 0
+    for trip_id, line in active_trips(conn):
+        try:
+            data = fetch_trip(session, trip_id)
+        except (requests.RequestException, ValueError) as exc:
+            log.error("trip refresh %s failed: %s", trip_id, exc)
+            continue
+        leg = data and pick_trip_leg(data, trip_id)
+        if not leg:
+            log.debug("no usable leg for trip %s", trip_id)
+            continue
+        # force the stored id so rows merge even if the server echoes a variant
+        store_leg(conn, line, {**leg, "tripId": trip_id})
+        refreshed += 1
+        time.sleep(REFRESH_PAUSE_S)
+    log.info("refreshed %d active trips", refreshed)
+    return refreshed
+
+
+def probe(trip_id: str) -> None:
+    """Debug helper: show what /trip returns for one tripId."""
+    with requests.Session() as session:
+        data = fetch_trip(session, trip_id)
+    if not data:
+        print("404 / empty response")
+        return
+    for leg in data.get("legs", []):
+        print(leg.get("mode"), leg.get("displayName") or leg.get("routeShortName"),
+              "tripId match:", leg.get("tripId") == trip_id,
+              "stops:", len(leg_places(leg)), "realTime:", leg.get("realTime"))
+
+
 def poll_once(conn: sqlite3.Connection, session: requests.Session) -> int:
     saved = 0
     for corridor in CORRIDORS:
@@ -322,6 +404,7 @@ def poll_once(conn: sqlite3.Connection, session: requests.Session) -> int:
             saved += 1
         log.info("%s %s -> %s: %d legs stored", corridor.line,
                  corridor.from_name, corridor.to_name, len(seen))
+    refresh_active_trips(conn, session)
     return saved
 
 
@@ -330,9 +413,13 @@ def main() -> None:
     parser.add_argument("--db", default=DB_PATH)
     parser.add_argument("--once", action="store_true", help="poll a single time and exit")
     parser.add_argument("--interval", type=int, default=120, help="seconds between polls")
+    parser.add_argument("--probe", metavar="TRIP_ID", help="print what /trip returns for one trip and exit")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    if args.probe:
+        probe(args.probe)
+        return
     conn = init_db(args.db)
     with requests.Session() as session:
         while True:
