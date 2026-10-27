@@ -34,3 +34,157 @@ nohup: ignoring input
 2026-10-23 14:39:30,824 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
 2026-10-23 14:39:31,036 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
 2026-10-23 14:39:31,389 INFO refreshed 1 active trips
+2026-10-23 14:44:36,689 INFO RE1 Aachen Hbf -> Köln Hbf: 4 legs stored
+2026-10-23 14:44:36,838 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 14:44:37,107 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 14:44:37,315 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 14:44:37,629 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 14:44:37,937 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 14:44:38,303 INFO refreshed 1 active trips
+2026-10-23 14:49:43,696 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 14:49:43,841 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 14:49:44,126 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 14:49:44,289 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 14:49:44,501 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 14:49:44,705 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 14:49:45,059 INFO refreshed 1 active trips
+2026-10-23 14:54:45,495 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 14:54:45,674 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 14:54:46,044 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 14:54:46,309 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 14:54:46,605 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 14:54:46,816 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 14:54:47,535 INFO refreshed 2 active trips
+2026-10-23 14:59:47,871 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 14:59:48,017 INFO RE1 Köln Hbf -> Aachen Hbf: 5 legs stored
+2026-10-23 14:59:48,333 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 14:59:48,567 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 14:59:48,758 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 14:59:48,961 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 14:59:49,679 INFO refreshed 2 active trips
+2026-10-23 15:04:49,983 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 15:04:50,128 INFO RE1 Köln Hbf -> Aachen Hbf: 5 legs stored
+2026-10-23 15:04:50,604 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:04:50,893 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:04:51,211 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 15:04:51,505 INFO RE4 Dortmund Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 15:04:52,598 INFO refreshed 3 active trips
+2026-10-23 15:09:52,900 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 15:09:53,259 INFO RE1 Köln Hbf -> Aachen Hbf: 5 legs stored
+2026-10-23 15:09:53,481 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:09:53,734 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:09:53,950 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 15:09:54,137 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 15:09:55,577 INFO refreshed 4 active trips
+2026-10-23 15:14:55,883 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 15:14:56,037 INFO RE1 Köln Hbf -> Aachen Hbf: 5 legs stored
+2026-10-23 15:14:56,275 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:14:56,460 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:14:56,668 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 15:14:56,883 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 15:14:58,313 INFO refreshed 4 active trips
+2026-10-23 15:19:58,623 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 15:19:58,811 INFO RE1 Köln Hbf -> Aachen Hbf: 5 legs stored
+2026-10-23 15:19:59,147 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:19:59,392 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:19:59,689 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 15:19:59,885 INFO RE4 Dortmund Hbf -> Aachen Hbf: 2 legs stored
+2026-10-23 15:20:01,315 INFO refreshed 4 active trips
+2026-10-23 15:25:01,660 INFO RE1 Aachen Hbf -> Köln Hbf: 4 legs stored
+2026-10-23 15:25:01,820 INFO RE1 Köln Hbf -> Aachen Hbf: 5 legs stored
+2026-10-23 15:25:02,086 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:25:02,376 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:25:02,691 INFO RE4 Aachen Hbf -> Dortmund Hbf: 3 legs stored
+2026-10-23 15:25:02,996 INFO RE4 Dortmund Hbf -> Aachen Hbf: 2 legs stored
+2026-10-23 15:25:04,078 INFO refreshed 3 active trips
+2026-10-23 15:30:04,386 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 15:30:04,537 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 15:30:04,793 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:30:05,068 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:30:05,297 INFO RE4 Aachen Hbf -> Dortmund Hbf: 3 legs stored
+2026-10-23 15:30:05,597 INFO RE4 Dortmund Hbf -> Aachen Hbf: 2 legs stored
+2026-10-23 15:30:06,695 INFO refreshed 3 active trips
+2026-10-23 15:35:10,815 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 15:35:11,071 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 15:35:11,876 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:35:12,303 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:35:12,677 INFO RE4 Aachen Hbf -> Dortmund Hbf: 3 legs stored
+2026-10-23 15:35:13,027 INFO RE4 Dortmund Hbf -> Aachen Hbf: 2 legs stored
+2026-10-23 15:35:14,157 INFO refreshed 3 active trips
+2026-10-23 15:40:19,434 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 15:40:19,574 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 15:40:19,788 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:40:19,989 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:40:20,201 INFO RE4 Aachen Hbf -> Dortmund Hbf: 3 legs stored
+2026-10-23 15:40:20,397 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 15:40:21,829 INFO refreshed 4 active trips
+2026-10-23 15:45:22,139 INFO RE1 Aachen Hbf -> Köln Hbf: 4 legs stored
+2026-10-23 15:45:22,278 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 15:45:22,589 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:45:22,792 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:45:25,031 INFO RE4 Aachen Hbf -> Dortmund Hbf: 3 legs stored
+2026-10-23 15:45:25,353 INFO RE4 Dortmund Hbf -> Aachen Hbf: 2 legs stored
+2026-10-23 15:45:26,801 INFO refreshed 4 active trips
+2026-10-23 15:50:27,151 INFO RE1 Aachen Hbf -> Köln Hbf: 4 legs stored
+2026-10-23 15:50:27,320 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 15:50:27,637 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:50:27,847 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:50:28,165 INFO RE4 Aachen Hbf -> Dortmund Hbf: 3 legs stored
+2026-10-23 15:50:28,460 INFO RE4 Dortmund Hbf -> Aachen Hbf: 2 legs stored
+2026-10-23 15:50:30,265 INFO refreshed 5 active trips
+2026-10-23 15:55:30,562 INFO RE1 Aachen Hbf -> Köln Hbf: 4 legs stored
+2026-10-23 15:55:30,701 INFO RE1 Köln Hbf -> Aachen Hbf: 5 legs stored
+2026-10-23 15:55:30,952 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 15:55:31,259 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 15:55:31,468 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 15:55:31,672 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 15:55:33,812 INFO refreshed 6 active trips
+2026-10-23 16:00:34,189 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 16:00:34,338 INFO RE1 Köln Hbf -> Aachen Hbf: 5 legs stored
+2026-10-23 16:00:34,589 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 16:00:34,882 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 16:00:35,192 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 16:00:35,503 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 16:00:38,045 INFO refreshed 7 active trips
+2026-10-23 16:05:38,425 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 16:05:38,576 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 16:05:38,874 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 16:05:39,240 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 16:05:39,560 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 16:05:39,845 INFO RE4 Dortmund Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 16:05:42,483 INFO refreshed 7 active trips
+2026-10-23 16:10:42,790 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 16:10:42,959 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 16:10:43,241 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 16:10:43,550 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 16:10:43,769 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 16:10:43,970 INFO RE4 Dortmund Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 16:10:46,854 INFO refreshed 8 active trips
+2026-10-23 16:15:47,167 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 16:15:47,336 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 16:15:47,597 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 16:15:47,777 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 16:15:48,104 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 16:15:48,330 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 16:15:51,198 INFO refreshed 8 active trips
+2026-10-23 16:20:51,537 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 16:20:51,708 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 16:20:52,042 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 16:20:52,322 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 16:20:52,621 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 16:20:52,827 INFO RE4 Dortmund Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 16:20:55,805 INFO refreshed 8 active trips
+2026-10-23 16:25:56,280 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 16:25:56,456 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 16:25:56,894 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 16:25:57,150 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 16:25:57,368 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 16:25:57,571 INFO RE4 Dortmund Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 16:26:00,465 INFO refreshed 8 active trips
+2026-10-23 16:31:00,744 INFO RE1 Aachen Hbf -> Köln Hbf: 3 legs stored
+2026-10-23 16:31:00,890 INFO RE1 Köln Hbf -> Aachen Hbf: 4 legs stored
+2026-10-23 16:31:01,101 INFO RE1 Aachen Hbf -> Hamm (Westf) Hbf: 0 legs stored
+2026-10-23 16:31:01,279 INFO RE1 Hamm (Westf) Hbf -> Aachen Hbf: 0 legs stored
+2026-10-23 16:31:01,600 INFO RE4 Aachen Hbf -> Dortmund Hbf: 4 legs stored
+2026-10-23 16:31:01,844 INFO RE4 Dortmund Hbf -> Aachen Hbf: 3 legs stored
+2026-10-23 16:31:04,975 INFO refreshed 8 active trips

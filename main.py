@@ -29,6 +29,7 @@ REQUEST_TIMEOUT = 20          # seconds
 DELAYED_THRESHOLD_MIN = 3     # >= this many minutes late counts as DELAYED
 ACTIVE_GRACE_MIN = 20         # keep refreshing a trip this long after its (actual) final arrival
 START_HORIZON_MIN = 15        # start refreshing a trip this long before it departs
+SNAPSHOT_WINDOW_MIN = 120     # a new trip gets a one-off full-route snapshot within this window
 REFRESH_PAUSE_S = 0.3         # politeness delay between /trip requests
 
 log = logging.getLogger("re_tracker")
@@ -79,7 +80,10 @@ CREATE TABLE IF NOT EXISTS trips (
     headsign             TEXT,
     scheduled_start      TEXT,             -- ISO 8601 UTC
     cancelled            INTEGER NOT NULL DEFAULT 0,  -- whole leg / all stops cancelled
-    partially_cancelled  INTEGER NOT NULL DEFAULT 0,  -- some stops cancelled
+    partially_cancelled  INTEGER NOT NULL DEFAULT 0,  -- some stops cancelled (ever)
+    planned_origin       TEXT,             -- first full-route snapshot, never overwritten
+    planned_destination  TEXT,             -- first full-route snapshot, never overwritten
+    planned_stop_count   INTEGER,
     first_seen_at        TEXT NOT NULL,
     last_seen_at         TEXT NOT NULL
 );
@@ -104,10 +108,20 @@ CREATE TABLE IF NOT EXISTS stop_events (
 CREATE INDEX IF NOT EXISTS idx_stop_events_station ON stop_events(station_name);
 CREATE INDEX IF NOT EXISTS idx_trips_line_start ON trips(line, scheduled_start);
 
--- Legs returned by /plan can be slices of a longer run (boarding -> alighting),
--- so stored sequence numbers are only relative. This view recomputes deltas
--- over the merged data, ordered by scheduled time.
-CREATE VIEW IF NOT EXISTS stop_delay_deltas AS
+CREATE TABLE IF NOT EXISTS trip_events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    trip_id     TEXT NOT NULL REFERENCES trips(trip_id) ON DELETE CASCADE,
+    kind        TEXT NOT NULL,   -- STOPS_DISAPPEARED | DESTINATION_CHANGED
+    detail      TEXT NOT NULL,
+    observed_at TEXT NOT NULL,
+    UNIQUE (trip_id, kind, detail)
+);
+"""
+
+# Views are dropped and recreated on every start so edits to them always apply.
+VIEWS = """
+DROP VIEW IF EXISTS stop_delay_deltas;
+CREATE VIEW stop_delay_deltas AS
 SELECT
     se.*,
     delay_minutes - LAG(delay_minutes) OVER (
@@ -116,20 +130,65 @@ SELECT
     ) AS merged_delta_minutes
 FROM stop_events se
 WHERE status != 'CANCELLED';
+
+DROP VIEW IF EXISTS trip_outcomes;
+CREATE VIEW trip_outcomes AS
+SELECT *,
+    CASE WHEN last_served_station IS NOT NULL AND planned_destination IS NOT NULL
+          AND last_served_station <> planned_destination THEN 1 ELSE 0 END AS terminated_early,
+    CASE WHEN first_served_station IS NOT NULL AND planned_origin IS NOT NULL
+          AND first_served_station <> planned_origin THEN 1 ELSE 0 END AS started_late,
+    CASE WHEN cancelled = 0
+          AND datetime(last_seen_at) < datetime(final_sched_time, '-10 minutes')
+          AND datetime('now') > datetime(final_sched_time, '+30 minutes')
+         THEN 1 ELSE 0 END AS lost_before_end
+FROM (
+    SELECT t.trip_id, t.line, t.planned_origin, t.planned_destination,
+           t.cancelled, t.partially_cancelled, t.scheduled_start, t.last_seen_at,
+           (SELECT station_name FROM stop_events s
+             WHERE s.trip_id = t.trip_id AND s.status != 'CANCELLED'
+             ORDER BY COALESCE(s.scheduled_arrival, s.scheduled_departure) DESC LIMIT 1)
+             AS last_served_station,
+           (SELECT station_name FROM stop_events s
+             WHERE s.trip_id = t.trip_id AND s.status != 'CANCELLED'
+             ORDER BY COALESCE(s.scheduled_departure, s.scheduled_arrival) ASC LIMIT 1)
+             AS first_served_station,
+           (SELECT COUNT(*) FROM stop_events s
+             WHERE s.trip_id = t.trip_id AND s.status = 'CANCELLED') AS cancelled_stops,
+           (SELECT COUNT(*) FROM stop_events s WHERE s.trip_id = t.trip_id) AS total_stops,
+           (SELECT MAX(COALESCE(s.scheduled_arrival, s.scheduled_departure))
+              FROM stop_events s WHERE s.trip_id = t.trip_id) AS final_sched_time
+    FROM trips t
+);
 """
+
+MIGRATIONS = [  # (table, column, type) - lets an existing database pick up new columns
+    ("trips", "planned_origin", "TEXT"),
+    ("trips", "planned_destination", "TEXT"),
+    ("trips", "planned_stop_count", "INTEGER"),
+]
 
 UPSERT_TRIP = """
 INSERT INTO trips (trip_id, line, origin, destination, headsign, scheduled_start,
-                   cancelled, partially_cancelled, first_seen_at, last_seen_at)
+                   cancelled, partially_cancelled,
+                   planned_origin, planned_destination, planned_stop_count,
+                   first_seen_at, last_seen_at)
 VALUES (:trip_id, :line, :origin, :destination, :headsign, :scheduled_start,
-        :cancelled, :partially_cancelled, :now, :now)
+        :cancelled, :partially_cancelled,
+        :planned_origin, :planned_destination, :planned_stop_count, :now, :now)
 ON CONFLICT(trip_id) DO UPDATE SET
-    origin              = excluded.origin,
-    destination         = excluded.destination,
-    headsign            = excluded.headsign,
-    scheduled_start     = COALESCE(excluded.scheduled_start, trips.scheduled_start),
-    cancelled           = excluded.cancelled,
+    -- only a full-route observation (/trip) knows the real endpoints of the run;
+    -- /plan legs are slices, so they must not overwrite these
+    origin          = CASE WHEN :full THEN excluded.origin          ELSE trips.origin          END,
+    destination     = CASE WHEN :full THEN excluded.destination     ELSE trips.destination     END,
+    scheduled_start = CASE WHEN :full THEN COALESCE(excluded.scheduled_start, trips.scheduled_start)
+                                      ELSE trips.scheduled_start END,
+    cancelled       = CASE WHEN :full THEN excluded.cancelled       ELSE trips.cancelled       END,
+    headsign        = COALESCE(excluded.headsign, trips.headsign),
     partially_cancelled = MAX(trips.partially_cancelled, excluded.partially_cancelled),
+    planned_origin      = COALESCE(trips.planned_origin,      excluded.planned_origin),
+    planned_destination = COALESCE(trips.planned_destination, excluded.planned_destination),
+    planned_stop_count  = COALESCE(trips.planned_stop_count,  excluded.planned_stop_count),
     last_seen_at        = excluded.last_seen_at
 """
 
@@ -155,11 +214,21 @@ ON CONFLICT(trip_id, station_name) DO UPDATE SET
 """
 
 
+def migrate(conn: sqlite3.Connection) -> None:
+    for table, column, col_type in MIGRATIONS:
+        existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if column not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
+    conn.commit()
+
+
 def init_db(path: str = DB_PATH) -> sqlite3.Connection:
     conn = sqlite3.connect(path)
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA journal_mode = WAL")
     conn.executescript(SCHEMA)
+    migrate(conn)
+    conn.executescript(VIEWS)
     conn.commit()
     return conn
 
@@ -284,7 +353,45 @@ def iter_matching_legs(itineraries: list[dict[str, Any]], line: str) -> Iterator
                 yield leg
 
 
-def store_leg(conn: sqlite3.Connection, line: str, leg: dict[str, Any]) -> None:
+def record_event(conn: sqlite3.Connection, trip_id: str, kind: str, detail: str, now: str) -> None:
+    cur = conn.execute(
+        "INSERT OR IGNORE INTO trip_events (trip_id, kind, detail, observed_at) VALUES (?,?,?,?)",
+        (trip_id, kind, detail, now),
+    )
+    if cur.rowcount:
+        log.warning("%s %s: %s", trip_id, kind, detail)
+
+
+def reconcile_full_trip(conn: sqlite3.Connection, trip_id: str,
+                        names: list[str], now: str) -> None:
+    """A full-route response is authoritative. Stops we stored earlier that are
+    missing from it AND still lie ahead of us were dropped by the operator
+    (short-turn / partial cancellation), so mark them CANCELLED instead of
+    leaving stale 'SCHEDULED' rows behind. Stops already passed are left alone."""
+    marks = ",".join("?" * len(names))
+    gone = [r[0] for r in conn.execute(
+        f"""SELECT station_name FROM stop_events
+            WHERE trip_id = ? AND status != 'CANCELLED'
+              AND station_name NOT IN ({marks})
+              AND COALESCE(actual_arrival, actual_departure,
+                           scheduled_arrival, scheduled_departure) > ?
+            ORDER BY COALESCE(scheduled_arrival, scheduled_departure)""",
+        [trip_id, *names, now])]
+    if not gone:
+        return
+    conn.executemany(
+        """UPDATE stop_events SET status = 'CANCELLED', delay_minutes = NULL,
+               delay_delta_minutes = NULL, last_updated_at = ?
+           WHERE trip_id = ? AND station_name = ?""",
+        [(now, trip_id, n) for n in gone])
+    conn.execute("UPDATE trips SET partially_cancelled = 1 WHERE trip_id = ?", (trip_id,))
+    record_event(conn, trip_id, "STOPS_DISAPPEARED", ", ".join(gone), now)
+
+
+def store_leg(conn: sqlite3.Connection, line: str, leg: dict[str, Any],
+              full: bool = False) -> None:
+    """full=True: the leg comes from /trip and covers the whole run.
+    full=False: the leg comes from /plan and is only a boarding->alighting slice."""
     now = datetime.now(timezone.utc).isoformat()
     trip_id = leg["tripId"]
     stops = build_stop_rows(trip_id, leg, now)
@@ -299,12 +406,24 @@ def store_leg(conn: sqlite3.Connection, line: str, leg: dict[str, Any]) -> None:
         "destination": stops[-1]["station_name"],
         "headsign": leg.get("headsign"),
         "scheduled_start": iso(parse_ts(leg.get("scheduledStartTime"))),
-        "cancelled": int(bool(leg.get("cancelled")) or n_cancelled == len(stops)),
-        "partially_cancelled": int(0 < n_cancelled < len(stops)),
+        "cancelled": int(bool(leg.get("cancelled")) or (full and n_cancelled == len(stops))),
+        "partially_cancelled": int(n_cancelled > 0 and (not full or n_cancelled < len(stops))),
+        "planned_origin": stops[0]["station_name"] if full else None,
+        "planned_destination": stops[-1]["station_name"] if full else None,
+        "planned_stop_count": len(stops) if full else None,
+        "full": int(full),
         "now": now,
     }
     with conn:  # one transaction per leg
+        previous = conn.execute(
+            "SELECT planned_destination FROM trips WHERE trip_id = ?", (trip_id,)).fetchone()
         conn.execute(UPSERT_TRIP, trip)
+        if full:
+            reconcile_full_trip(conn, trip_id, [s["station_name"] for s in stops], now)
+            planned = previous[0] if previous else None
+            if planned and planned != trip["destination"]:
+                record_event(conn, trip_id, "DESTINATION_CHANGED",
+                             f"{planned} -> {trip['destination']}", now)
         conn.executemany(UPSERT_STOP, stops)
 
 
@@ -314,14 +433,20 @@ def store_leg(conn: sqlite3.Connection, line: str, leg: dict[str, Any]) -> None:
 ACTIVE_TRIPS_SQL = """
 SELECT t.trip_id, t.line
 FROM trips t
-WHERE t.cancelled = 0
-  AND t.scheduled_start <= :horizon
-  AND (
+WHERE
+    -- (a) newly discovered trip: take one full-route snapshot as early as possible,
+    --     so the planned route is recorded before anything gets shortened
+    (t.planned_destination IS NULL AND t.first_seen_at >= :recent)
+ OR
+    -- (b) running or about to run, and not yet finished
+    (t.cancelled = 0
+     AND t.scheduled_start <= :horizon
+     AND (
         SELECT MAX(COALESCE(s.actual_arrival, s.actual_departure,
                             s.scheduled_arrival, s.scheduled_departure))
         FROM stop_events s
         WHERE s.trip_id = t.trip_id AND s.status != 'CANCELLED'
-      ) >= :cutoff
+     ) >= :cutoff)
 """
 
 
@@ -331,6 +456,7 @@ def active_trips(conn: sqlite3.Connection) -> list[tuple[str, str]]:
     params = {
         "horizon": (now + timedelta(minutes=START_HORIZON_MIN)).isoformat(),
         "cutoff": (now - timedelta(minutes=ACTIVE_GRACE_MIN)).isoformat(),
+        "recent": (now - timedelta(minutes=SNAPSHOT_WINDOW_MIN)).isoformat(),
     }
     return [(r[0], r[1]) for r in conn.execute(ACTIVE_TRIPS_SQL, params)]
 
@@ -366,7 +492,7 @@ def refresh_active_trips(conn: sqlite3.Connection, session: requests.Session) ->
             log.debug("no usable leg for trip %s", trip_id)
             continue
         # force the stored id so rows merge even if the server echoes a variant
-        store_leg(conn, line, {**leg, "tripId": trip_id})
+        store_leg(conn, line, {**leg, "tripId": trip_id}, full=True)
         refreshed += 1
         time.sleep(REFRESH_PAUSE_S)
     log.info("refreshed %d active trips", refreshed)
